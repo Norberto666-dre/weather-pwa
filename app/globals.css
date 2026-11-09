@@ -1,26 +1,370 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ink: #07131c;
+  --color-deep: #0b2230;
+  --color-panel: #0e2734;
+  --color-panel-2: #12303f;
+  --color-parchment: #f4ecdd;
+  --color-muted: #9db0bd;
+  --color-gold: #d8a94a;
+  --color-gold-soft: #e8c982;
+  --color-ember: #e2683c;
+  --color-sea: #47a3a3;
+  --color-rain: #6d9fe0;
+  --color-danger: #e07a6a;
+  --color-success: #7fbf8a;
+
+  --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino,
+    Georgia, Cambria, "Times New Roman", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --radius-panel: 14px;
+  --radius-instrument: 10px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #07131c;
+  --foreground: #f4ecdd;
+  --accent: #d8a94a;
+  --accent-2: #e2683c;
+  --sky-a: #07131c;
+  --sky-b: #0b2230;
+  --sky-c: #12303f;
+
+  /* Alias para el CSS propio y las ilustraciones SVG. */
+  --ink: #07131c;
+  --deep: #0b2230;
+  --panel: #0e2734;
+  --panel-2: #12303f;
+  --parchment: #f4ecdd;
+  --muted: #9db0bd;
+  --gold: #d8a94a;
+  --gold-soft: #e8c982;
+  --ember: #e2683c;
+  --sea: #47a3a3;
+  --rain: #6d9fe0;
+  --danger: #e07a6a;
+  --success: #7fbf8a;
+
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[data-daypart="dawn"] {
+  --sky-a: #12162a;
+  --sky-b: #35243a;
+  --sky-c: #6b3a2e;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-daypart="day"] {
+  --sky-a: #061820;
+  --sky-b: #0b2c3a;
+  --sky-c: #16505c;
+}
+
+[data-daypart="dusk"] {
+  --sky-a: #0a1520;
+  --sky-b: #2b1c2b;
+  --sky-c: #6a3324;
+}
+
+[data-daypart="night"] {
+  --sky-a: #050d16;
+  --sky-b: #0a1b2a;
+  --sky-c: #122c3d;
+}
+
+[data-condition="clear"] {
+  --accent: #e2b04a;
+  --accent-2: #e2683c;
+}
+
+[data-condition="clouds"] {
+  --accent: #b8c6cf;
+  --accent-2: #6d9fe0;
+}
+
+[data-condition="rain"] {
+  --accent: #6d9fe0;
+  --accent-2: #47a3a3;
+}
+
+[data-condition="storm"] {
+  --accent: #c9b0f0;
+  --accent-2: #d8a94a;
+}
+
+[data-condition="snow"] {
+  --accent: #cfe6f2;
+  --accent-2: #8fb8d6;
+}
+
+[data-condition="mist"] {
+  --accent: #9db0bd;
+  --accent-2: #d8a94a;
+}
+
+html {
+  background: var(--background);
+  scroll-behavior: smooth;
 }
 
 body {
+  min-height: 100dvh;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent);
+  color: #07131c;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #07131c;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: top 150ms ease;
+}
+
+.skip-link:focus-visible {
+  top: 1rem;
+}
+
+/* Fondo del almanaque: cielo, grano y un halo del acento del clima. */
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      110% 70% at 50% -12%,
+      color-mix(in srgb, var(--accent) 18%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      80% 60% at 100% 0%,
+      color-mix(in srgb, var(--accent-2) 14%, transparent),
+      transparent 65%
+    ),
+    linear-gradient(180deg, var(--sky-a) 0%, var(--sky-b) 52%, var(--sky-c) 100%);
+}
+
+.sky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+}
+
+.panel {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--panel-2) 82%, transparent),
+      color-mix(in srgb, var(--deep) 92%, transparent)
+    );
+  border-radius: var(--radius-panel);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 30px 70px -50px rgba(0, 0, 0, 0.95);
+}
+
+.instrument::before,
+.instrument::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  border-style: solid;
+  pointer-events: none;
+}
+
+.instrument::before {
+  top: 7px;
+  left: 7px;
+  border-width: 1px 0 0 1px;
+}
+
+.instrument::after {
+  right: 7px;
+  bottom: 7px;
+  border-width: 0 1px 1px 0;
+}
+
+.rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 40%, transparent),
+    transparent
+  );
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.label {
+  font-size: 0.66rem;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--muted) 88%, transparent);
+}
+
+.scroll-x {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent) 35%, transparent) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-x::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scroll-x::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.pt-safe {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Diálogo de instalación */
+dialog.sheet {
+  color: var(--foreground);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      170deg,
+      color-mix(in srgb, var(--panel-2) 96%, transparent),
+      color-mix(in srgb, var(--ink) 98%, transparent)
+    );
+  padding: 0;
+  max-width: min(30rem, calc(100vw - 2rem));
+  width: 100%;
+  box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.9);
+}
+
+dialog.sheet::backdrop {
+  background: rgba(3, 10, 16, 0.72);
+  backdrop-filter: blur(5px);
+}
+
+dialog.sheet[open] {
+  animation: sheet-in 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -1.5%, 0) scale(1.03);
+  }
+  to {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes rain-fall {
+  from {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  to {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+}
+
+.reveal {
+  animation: rise 640ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.reveal-delay-1 {
+  animation-delay: 80ms;
+}
+
+.reveal-delay-2 {
+  animation-delay: 160ms;
+}
+
+.reveal-delay-3 {
+  animation-delay: 240ms;
+}
+
+.drift {
+  animation: drift 26s ease-in-out infinite;
+}
+
+.rain-line {
+  animation: rain-fall 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
